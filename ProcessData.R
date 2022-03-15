@@ -4,35 +4,13 @@ library(BlueCopper2GP)
 library(MultiAssayExperiment)
 library(MSstats)
 library(lme4)
+library(UniProt.ws)
+mouseUp <- UniProt.ws(10090)
 
 ### ------ Read in MSstats input from Blue Copper -------------
 
 # IDs 2129-full dataset, 2158- No129C134C135N
 input <- getBCResource(id="2158", tag="MSstats Input")
-
-# change Protein names into user readable Format
-ProteinID <- vector()
-for(p in 1:dim(input)[1]){
-  p.name <- input[p,1]
-  input[p,1] <- strsplit(p.name,"_")[[1]][1]
-  id <- unlist(strsplit(strsplit(p.name,"_")[[1]][2],"|"))
-  ProteinID[p] <- paste(id[7:length(id)],collapse = "")
-  
-}
-
-input <- cbind(ProteinName=input[,1],ProteinID,input[,2:length(input)])
-input <- input[-which(startsWith(input$ProteinID,"|")==TRUE),] # rids human proteins
-
-uniprot_mapping <- function(ids) {
-  uri <- 'http://www.uniprot.org/uniprot/?query='
-  idStr <- paste(ids, collapse="+or+")
-  format <- '&format=tab'
-  fullUri <- paste0(uri,idStr,format)
-  dat <- read.delim(fullUri)
-  dat
-}
-
- 
 
 quant.msstats <- proteinSummarization(input,
                                       method="msstats",
@@ -48,44 +26,44 @@ x <- quant.msstats$ProteinLevelData
 x <- x[-which(startsWith(as.character(x[,5]),"KRT")==TRUE),]
 quant.msstats$ProteinLevelData <- x
 
-ProteinID <- levels(quant.msstats$ProteinLevelData$Protein)
-labels <- data.frame()
-for(ids in 1:length(ProteinID)){
-  print(ids)
-  if(is.na(as.numeric(ProteinID[ids]))){
-    map <- uniprot_mapping(ProteinID[ids])
-    labels <- rbind( labels,
-                   map[ which(map[,2]==paste0(ProteinID[ids],"_MOUSE")), c("Entry","Entry.name","Protein.names","Gene.names") ])
-    rownames(labels) <- NULL}
-  else{
-    labels <- rbind( labels,"NA")
-  }
+ProteinIDFeat <- vector()
+for(p in 1:length(levels(quant.msstats$FeatureLevelData$ProteinName))){
+  p.name <- levels(quant.msstats$FeatureLevelData$ProteinName)[p]
+  levels(quant.msstats$FeatureLevelData$ProteinName)[p] <- strsplit(p.name,"_")[[1]][1]
+  id <- unlist(strsplit(strsplit(p.name,"_")[[1]][2],"|"))
+  ProteinIDFeat[p] <- paste(id[7:length(id)],collapse = "")
 }
 
-write.csv(labels, file = "/gstore/scratch/u/lucast3/Alzheimers_Proteomics/labels.csv")
-
-genes <- labels$Gene.names
-
-quant.msstats$ProteinLevelData$Gene <- quant.msstats$ProteinLevelData$Protein
-levels(quant.msstats$ProteinLevelData$Gene) <- labels$Gene.names
-
-ProteinID <- levels(quant.msstats$FeatureLevelData$ProteinName)
-labels <- data.frame()
-for(ids in 1:length(ProteinID)){
-  print(ids)
-  if(is.na(as.numeric(ProteinID[ids]))){
-    map <- uniprot_mapping(ProteinID[ids])
-    labels <- rbind( labels,
-                     map[ which(map[,2]==paste0(ProteinID[ids],"_MOUSE")), c("Entry","Entry.name","Protein.names","Gene.names") ])
-    rownames(labels) <- NULL}
-  else{
-    labels <- rbind( labels,"NA")
-  }
+ProteinIDPro <- vector()
+for(p in 1:length(levels(quant.msstats$ProteinLevelData$Protein))){
+  p.name <- levels(quant.msstats$ProteinLevelData$Protein)[p]
+  levels(quant.msstats$ProteinLevelData$Protein)[p] <- strsplit(p.name,"_")[[1]][1]
+  id <- unlist(strsplit(strsplit(p.name,"_")[[1]][2],"|"))
+  ProteinIDPro[p] <- paste(id[7:length(id)],collapse = "")
 }
+
+mouseUp <- UniProt.ws(10090)
+
+labels <- select(mouseUp,
+                 keys = ProteinIDFeat,
+                 columns = c("GENENAME","PROTEIN-NAMES"),
+                 keytype = "UNIPROTKB_ID" )
 
 
 quant.msstats$FeatureLevelData$Gene <- quant.msstats$FeatureLevelData$ProteinName
-levels(quant.msstats$FeatureLevelData$Gene) <- labels$Gene.names
+quant.msstats$FeatureLevelData$ID <- quant.msstats$FeatureLevelData$ProteinName
+levels(quant.msstats$FeatureLevelData$Gene) <- labels$GENENAME
+levels(quant.msstats$FeatureLevelData$ID) <- ProteinIDPro
+
+labels <- select(mouseUp,
+                 keys = ProteinIDPro,
+                 columns = c("GENENAME","PROTEIN-NAMES"),
+                 keytype = "UNIPROTKB_ID" )
+
+quant.msstats$ProteinLevelData$Gene <- quant.msstats$ProteinLevelData$Protein
+quant.msstats$ProteinLevelData$ID <- quant.msstats$ProteinLevelData$Protein
+levels(quant.msstats$ProteinLevelData$Gene) <- labels$GENENAME
+levels(quant.msstats$ProteinLevelData$ID) <- ProteinIDPro
 
 save(quant.msstats, file = "/gstore/scratch/u/lucast3/Alzheimers_Proteomics/ALZdata.Rdata")
 
