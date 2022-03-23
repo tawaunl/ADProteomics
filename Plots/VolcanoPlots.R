@@ -10,7 +10,7 @@ setwd("/gstore/scratch/u/lucast3/Alzheimers_Proteomics/")
 ## load data
 ### tgBioId vs all
 data <- read_delim("Tg_BioIDvsAll.csv", 
-                       delim = ";", escape_double = FALSE,
+                       delim = ";", escape_double = FALSE,col_types = cols(log2FC = col_number()),
                        locale = locale(decimal_mark = ",", grouping_mark = "."),
                        trim_ws = TRUE)
 
@@ -43,7 +43,7 @@ dev.off()
 
 ### TG_tdTomvsALL vs all -------------------------------------------------
 data <- read_delim("TG_tdTomvsALL.csv", 
-                       delim = ";", escape_double = FALSE,
+                       delim = ";", escape_double = FALSE,col_types = cols(log2FC = col_number()),
                        locale = locale(decimal_mark = ",", grouping_mark = "."),
                        trim_ws = TRUE)
 
@@ -51,7 +51,7 @@ data <- read_delim("TG_tdTomvsALL.csv",
 x <- data$GeneName
 data <- data[-which(startsWith(as.character(x),"Krt")==TRUE),]
 y1 <- ceiling(max(-log10(data$adj.pvalue))*2)/2
-EnhancedVolcano(data,
+plot <- EnhancedVolcano(data,
                 lab = data$GeneName,
                 x = 'log2FC',
                 y = 'adj.pvalue',
@@ -75,7 +75,7 @@ dev.off()
 
 ### WtBioID vs all -----------------------------------------------------------
 data <- read_delim("WtBvsALL.csv", 
-                       delim = ";", escape_double = FALSE,
+                       delim = ";", escape_double = FALSE,col_types = cols(log2FC = col_number()),
                        locale = locale(decimal_mark = ",", grouping_mark = "."),
                        trim_ws = TRUE)
 
@@ -83,7 +83,7 @@ data <- read_delim("WtBvsALL.csv",
 x <- data$GeneName
 data <- data[-which(startsWith(as.character(x),"Krt")==TRUE),]
 y1 <- ceiling(max(-log10(data$adj.pvalue))*2)/2
-EnhancedVolcano(data,
+plot <- EnhancedVolcano(data,
                 lab = data$GeneName,
                 x = 'log2FC',
                 y = 'adj.pvalue',
@@ -106,7 +106,7 @@ dev.off()
 
 ### WttdTomato vs all ---------------------------------------------------
 data <- read_delim("WtTdvsALL.csv", 
-                       delim = ";", escape_double = FALSE,
+                       delim = ";", escape_double = FALSE,col_types = cols(log2FC = col_number()),
                        locale = locale(decimal_mark = ",", grouping_mark = "."),
                        trim_ws = TRUE)
 
@@ -114,7 +114,7 @@ data <- read_delim("WtTdvsALL.csv",
 x <- data$GeneName
 data <- data[-which(startsWith(as.character(x),"Krt")==TRUE),]
 y1 <- ceiling(max(-log10(data$adj.pvalue))*2)/2
-EnhancedVolcano(data,
+plot <- EnhancedVolcano(data,
                 lab = data$GeneName,
                 x = 'log2FC',
                 y = 'adj.pvalue',
