@@ -56,17 +56,24 @@ labels <- select(mouseUp,
                  columns = c("GENENAME","PROTEIN-NAMES"),
                  keytype = "UNIPROTKB_ID" )
 genes <- vector()
+names <- vector()
 for(p in 1:length(ProteinID)){
   if(length(which(ProteinID[p]==labels[,1])) > 0){
     genes[p] <- labels[which(ProteinID[p]==labels[,1]),2]
+    names[p] <- labels[which(ProteinID[p]==labels[,1]),3]
   }
   else{
     genes[p] <- NA
+    names[p] <- NA
   }
 }
 
 test.pairwise[["ComparisonResult"]]$GeneName <- test.pairwise$ComparisonResult$Protein
+test.pairwise[["ComparisonResult"]]$ProName <- test.pairwise$ComparisonResult$Protein
+
 levels(test.pairwise[["ComparisonResult"]]$GeneName) <- genes
+levels(test.pairwise[["ComparisonResult"]]$ProName) <- names
+
 
 
 # Comarison level:"Transgenic_BioID2P2AtdTOM" "Transgenic_tdTOM" "WT_BioID2P2AtdTOM" "WT_tdTOM"
@@ -94,18 +101,23 @@ labels <- select(mouseUp,
                  columns = c("GENENAME","PROTEIN-NAMES"),
                  keytype = "UNIPROTKB_ID" )
 genes <- vector()
+names <- vector()
 for(p in 1:length(ProteinID)){
   if(length(which(ProteinID[p]==labels[,1])) > 0){
     genes[p] <- labels[which(ProteinID[p]==labels[,1]),2]
+    names[p] <- labels[which(ProteinID[p]==labels[,1]),3]
   }
   else{
     genes[p] <- NA
+    names[p] <- NA
   }
 }
 
-
 test.TGB[["ComparisonResult"]]$GeneName <- test.TGB$ComparisonResult$Protein
 levels(test.TGB[["ComparisonResult"]]$GeneName) <- genes
+test.TGB[["ComparisonResult"]]$ProName <- test.TGB$ComparisonResult$Protein
+levels(test.TGB[["ComparisonResult"]]$ProName) <- names
+
 #plot 
 MSstatsConvert::MSstatsLogsSettings(FALSE, FALSE, FALSE)
 groupComparisonPlots(test.TGB$ComparisonResult,type="VolcanoPlot",
@@ -137,17 +149,23 @@ labels <- select(mouseUp,
                  columns = c("GENENAME","PROTEIN-NAMES"),
                  keytype = "UNIPROTKB_ID" )
 genes <- vector()
+names <- vector()
 for(p in 1:length(ProteinID)){
   if(length(which(ProteinID[p]==labels[,1])) > 0){
     genes[p] <- labels[which(ProteinID[p]==labels[,1]),2]
+    names[p] <- labels[which(ProteinID[p]==labels[,1]),3]
   }
   else{
     genes[p] <- NA
+    names[p] <- NA
   }
 }
 
 test.TGT[["ComparisonResult"]]$GeneName <- test.TGT$ComparisonResult$Protein
 levels(test.TGT[["ComparisonResult"]]$GeneName) <- genes
+
+test.TGT[["ComparisonResult"]]$ProName <- test.TGT$ComparisonResult$Protein
+levels(test.TGT[["ComparisonResult"]]$ProName) <- names
 #plot
 MSstatsConvert::MSstatsLogsSettings(FALSE, FALSE, FALSE)
 groupComparisonPlots(test.TGT$ComparisonResult,type="VolcanoPlot",
@@ -179,17 +197,24 @@ labels <- select(mouseUp,
                  columns = c("GENENAME","PROTEIN-NAMES"),
                  keytype = "UNIPROTKB_ID" )
 genes <- vector()
+names <- vector()
 for(p in 1:length(ProteinID)){
   if(length(which(ProteinID[p]==labels[,1])) > 0){
     genes[p] <- labels[which(ProteinID[p]==labels[,1]),2]
+    names[p] <- labels[which(ProteinID[p]==labels[,1]),3]
   }
   else{
     genes[p] <- NA
+    names[p] <- NA
   }
 }
 
 test.WtB[["ComparisonResult"]]$GeneName <- test.WtB$ComparisonResult$Protein
 levels(test.WtB[["ComparisonResult"]]$GeneName) <- genes
+
+test.WtB[["ComparisonResult"]]$ProName <- test.WtB$ComparisonResult$Protein
+levels(test.WtB[["ComparisonResult"]]$ProName) <- names
+
 #plot 
 MSstatsConvert::MSstatsLogsSettings(FALSE, FALSE, FALSE)
 groupComparisonPlots(test.WtB$ComparisonResult,type="VolcanoPlot",
@@ -209,8 +234,8 @@ test.WtTd <- groupComparisonTMT(data = quant.msstats, contrast.matrix = comparis
 
 ProteinID <- vector()
 Entry <- vector()
-for(p in 1:length(levels(test.WtTD$ComparisonResult$Protein))){
-  p.name <- levels(test.WtTD$ComparisonResult$Protein)[p]
+for(p in 1:length(levels(test.WtTd$ComparisonResult$Protein))){
+  p.name <- levels(test.WtTd$ComparisonResult$Protein)[p]
   Entry[p] <- strsplit(p.name,"_")[[1]][1]
   id <- unlist(strsplit(strsplit(p.name,"_")[[1]][2],"|"))
   ProteinID[p] <- paste(id[7:length(id)],collapse = "")
@@ -221,17 +246,24 @@ labels <- select(mouseUp,
                  columns = c("GENENAME","PROTEIN-NAMES"),
                  keytype = "UNIPROTKB_ID" )
 genes <- vector()
+names <- vector()
 for(p in 1:length(ProteinID)){
   if(length(which(ProteinID[p]==labels[,1])) > 0){
     genes[p] <- labels[which(ProteinID[p]==labels[,1]),2]
+    names[p] <- labels[which(ProteinID[p]==labels[,1]),3]
   }
   else{
     genes[p] <- NA
+    names[p] <- NA
   }
 }
 
 test.WtTd[["ComparisonResult"]]$GeneName <- test.WtTd$ComparisonResult$Protein
 levels(test.WtTd[["ComparisonResult"]]$GeneName) <- genes
+
+test.WtTd[["ComparisonResult"]]$ProName <- test.WtTd$ComparisonResult$Protein
+levels(test.WtTd[["ComparisonResult"]]$ProName) <- names
+
 #plot 
 MSstatsConvert::MSstatsLogsSettings(FALSE, FALSE, FALSE)
 groupComparisonPlots(test.WtTd$ComparisonResult,type="VolcanoPlot",
