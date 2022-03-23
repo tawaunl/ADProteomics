@@ -1,0 +1,169 @@
+---
+title: "Alzheimer's Proteomics Analyisis"
+output: html_document
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Differential Expression plots for Alzheimer's Proteomics experiments
+
+This analysis consists of proteins pulldown from Tg P301s mice and WT controls.
+There are also tdTtomato control animals which represents all background proteins.
+
+```{r Loading libraries and setting directory, message=FALSE}
+library(EnhancedVolcano)
+library(MSstatsTMT)
+library(UniProt.ws)
+library(MSstats)
+library(readr)
+
+setwd("/gstore/scratch/u/lucast3/Alzheimers_Proteomics/")
+```
+
+## Tg P301s BioID vs All other control animals
+
+Here we are making the comparison to see which proteins are enriched in AD animals over controls.
+
+```{r tgBioId vs all, echo=TRUE, message=FALSE, warning=FALSE}
+# Read in Differential expression data
+data <- read_delim("Tg_BioIDvsAll.csv",
+                   delim = ";", escape_double = FALSE,
+                   col_types = cols(log2FC = col_number()),
+                   locale = locale(decimal_mark = ",", grouping_mark = "."),
+                   trim_ws = TRUE)
+```
+
+#### Including Plots
+
+Volcano plot for enriched proteins
+
+```{r tgBioId Volcano, echo=FALSE, message=FALSE, warning=FALSE, fig.width=11.75, fig.height=10.04}
+x <- data$GeneName
+data <- data[-which(startsWith(as.character(x),"Krt")==TRUE),]
+y1 <- ceiling(max(-log10(data$adj.pvalue))*2)/2
+
+
+plot <- EnhancedVolcano(data,
+                lab = data$GeneName,
+                x = 'log2FC',
+                y = 'adj.pvalue',
+                title = 'TgBioID vs. All', caption='',
+                subtitle = paste("FDR cutoff = 0.05 \nFC cutoff = 1"),
+                pCutoff = 0.05,
+                FCcutoff = 1,
+                pointSize = 1.0,
+                labSize = 4.0,
+                col=c('black', 'black', 'black', 'red3'),
+                ylim = c(0,y1),
+                ylab = bquote(~-Log[10]~ 'FDR'),
+                drawConnectors = TRUE,border = 'full',colConnectors = 'grey30',
+                widthConnectors = .5, borderWidth = 1.0, borderColour = 'black') + theme(legend.position="none")
+
+print(plot)
+
+```
+
+## WT BioID vs vs All other  animals
+
+```{r WT BioId vs all, message=FALSE, warning=FALSE, echo=TRUE}
+# Read in Differential expression
+data <- read_delim("WtBvsALL.csv", 
+                       delim = ";", escape_double = FALSE,col_types = cols(log2FC = col_number()),
+                       locale = locale(decimal_mark = ",", grouping_mark = "."),
+                       trim_ws = TRUE)
+```
+
+```{r Wt BioID vs all Volcano, echo=FALSE, message=FALSE, warning=FALSE, fig.width=11.75, fig.height=10.04}
+x <- data$GeneName
+data <- data[-which(startsWith(as.character(x),"Krt")==TRUE),]
+y1 <- ceiling(max(-log10(data$adj.pvalue))*2)/2
+plot <- EnhancedVolcano(data,
+                lab = data$GeneName,
+                x = 'log2FC',
+                y = 'adj.pvalue',
+                title = 'WtBioID vs. All', caption='',
+                subtitle = paste("FDR cutoff = 0.05 \nFC cutoff = 1"),
+                pCutoff = 0.05,
+                FCcutoff = 1,
+                pointSize = 1.0,
+                labSize = 4.0,
+                col=c('black', 'black', 'black', 'red3'),
+                ylim = c(0,y1),
+                ylab = bquote(~-Log[10]~ 'FDR'),
+                drawConnectors = TRUE,border = 'full',colConnectors = 'grey30',
+                widthConnectors = .5, borderWidth = 1.0, borderColour = 'black') + theme(legend.position="none")
+
+print(plot)
+
+```
+
+
+## Tg P301s tdTomato vs  All other 
+```{r Tg Tdtomato vs all, message=FALSE, warning=FALSE, echo=TRUE}
+# Read in Differential expression
+data <- read_delim("TG_tdTomvsALL.csv", 
+                       delim = ";", escape_double = FALSE,col_types = cols(log2FC = col_number()),
+                       locale = locale(decimal_mark = ",", grouping_mark = "."),
+                       trim_ws = TRUE)
+```
+
+```{r tgtdTomato vs all Volcano, echo=FALSE, message=FALSE, warning=FALSE, fig.width=11.75, fig.height=10.04}
+x <- data$GeneName
+data <- data[-which(startsWith(as.character(x),"Krt")==TRUE),]
+y1 <- ceiling(max(-log10(data$adj.pvalue))*2)/2
+plot <- EnhancedVolcano(data,
+                lab = data$GeneName,
+                x = 'log2FC',
+                y = 'adj.pvalue',
+                title = 'TG_tdTom vs. All', caption='',
+                subtitle = paste("FDR cutoff = 0.05 \nFC cutoff = 1"),
+                pCutoff = 0.05,
+                FCcutoff = 1,
+                pointSize = 1.0,
+                labSize = 4.0,
+                col=c('black', 'black', 'black', 'red3'),
+                ylim = c(0,y1),
+                ylab = bquote(~-Log[10]~ 'FDR'),
+                drawConnectors = TRUE,border = 'full',colConnectors = 'grey30',
+                widthConnectors = .5, borderWidth = 1.0, borderColour = 'black') + theme(legend.position="none")
+
+print(plot)
+
+```
+
+## Wt tdTomato vs All others
+
+```{r WT tdT vs all, message=FALSE, warning=FALSE, echo=TRUE}
+# Read in Differential expression
+data <- read_delim("WtTdvsALL.csv", 
+                       delim = ";", escape_double = FALSE,col_types = cols(log2FC = col_number()),
+                       locale = locale(decimal_mark = ",", grouping_mark = "."),
+                       trim_ws = TRUE)
+```
+
+```{r Wt tdT vs all Volcano, echo=FALSE, message=FALSE, warning=FALSE, fig.width=11.75, fig.height=10.04}
+x <- data$GeneName
+data <- data[-which(startsWith(as.character(x),"Krt")==TRUE),]
+y1 <- ceiling(max(-log10(data$adj.pvalue))*2)/2
+plot <- EnhancedVolcano(data,
+                lab = data$GeneName,
+                x = 'log2FC',
+                y = 'adj.pvalue',
+                title = 'WTtdTomato vs. All', caption='',
+                subtitle = paste("FDR cutoff = 0.05 \nFC cutoff = 1"),
+                pCutoff = 0.05,
+                FCcutoff = 1,
+                pointSize = 1.0,
+                labSize = 4.0,
+                col=c('black', 'black', 'black', 'red3'),
+                ylim = c(0,y1),
+                ylab = bquote(~-Log[10]~ 'FDR'),
+                drawConnectors = TRUE,border = 'full',colConnectors = 'grey30',
+                widthConnectors = .5, borderWidth = 1.0, borderColour = 'black') + theme(legend.position="none")
+
+print(plot)
+
+```
