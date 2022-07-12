@@ -26,7 +26,7 @@ x <- quant.msstats$ProteinLevelData
 x <- x[-which(startsWith(as.character(x[,5]),"KRT")==TRUE),]
 quant.msstats$ProteinLevelData <- x
 
-mouseUp <- UniProt.ws(10090)
+mouseUp <- UniProt.ws(taxID=10090)
 
 save(quant.msstats, file = "/gstore/scratch/u/lucast3/Alzheimers_Proteomics/ALZdata.Rdata")
 
@@ -42,6 +42,8 @@ dataProcessPlotsTMT(data=quant.msstats,
 
 ### ------ Group comparisons ---------
 test.pairwise <- groupComparisonTMT(quant.msstats)
+library(mygene)
+
 ProteinID <- vector()
 Entry <- vector()
 for(p in 1:length(levels(test.pairwise$ComparisonResult$Protein))){
@@ -51,30 +53,26 @@ for(p in 1:length(levels(test.pairwise$ComparisonResult$Protein))){
   ProteinID[p] <- paste(id[7:length(id)],collapse = "")
 }
 
-labels <- select(mouseUp,
-                 keys = ProteinID,
-                 columns = c("GENENAME","PROTEIN-NAMES"),
-                 keytype = "UNIPROTKB_ID" )
-genes <- vector()
-names <- vector()
-for(p in 1:length(ProteinID)){
-  if(length(which(ProteinID[p]==labels[,1])) > 0){
-    genes[p] <- labels[which(ProteinID[p]==labels[,1]),2]
-    names[p] <- labels[which(ProteinID[p]==labels[,1]),3]
-  }
-  else{
-    genes[p] <- NA
-    names[p] <- NA
-  }
-}
+mapping <- queryMany(ProteinID, scopes = "uniprot")
+genes <- mapping$symbol
+desc <- mapping$name
+pro <- factor(test.pairwise$ComparisonResult$Protein)
+levels(pro)<- desc
+pro2 <- factor(test.pairwise$ComparisonResult$Protein)
+levels(pro2)<- genes
+pro3 <- factor(test.pairwise$ComparisonResult$Protein)
+levels(pro3)<- ProteinID
 
-test.pairwise[["ComparisonResult"]]$GeneName <- test.pairwise$ComparisonResult$Protein
-test.pairwise[["ComparisonResult"]]$ProName <- test.pairwise$ComparisonResult$Protein
+test.pairwise$ComparisonResult$Gene <- pro2
+test.pairwise$ComparisonResult$Description <- pro
+test.pairwise$ComparisonResult$ProteinID <- pro3
 
-levels(test.pairwise[["ComparisonResult"]]$GeneName) <- genes
-levels(test.pairwise[["ComparisonResult"]]$ProName) <- names
-
-
+#Transgenic_BioID2P2AtdTOM vs WT_BioID2P2AtdTOM"
+# Transgenic_BioID2P2AtdTOM vs WT_tdTOM"         
+#Transgenic_tdTOM vs Transgenic_BioID2P2AtdTOM" 
+# Transgenic_tdTOM vs WT_BioID2P2AtdTOM"         
+#Transgenic_tdTOM vs WT_tdTOM"                  
+#WT_tdTOM vs WT_BioID2P2AtdTOM"                 
 
 # Comarison level:"Transgenic_BioID2P2AtdTOM" "Transgenic_tdTOM" "WT_BioID2P2AtdTOM" "WT_tdTOM"
 c.names <- c("Transgenic_BioID2P2AtdTOM","Transgenic_tdTOM", "WT_BioID2P2AtdTOM","WT_tdTOM" )
@@ -125,7 +123,7 @@ groupComparisonPlots(test.TGB$ComparisonResult,type="VolcanoPlot",
 groupComparisonPlots(test.TGB$ComparisonResult,type="ComparisonPlot",
                      address = "Tg_BioIDvsAll_")
 #save table
-write.csv2(test.TGB$ComparisonResult,file = "Tg_BioIDvsAll.csv")
+write.csv(test.TGB$ComparisonResult,file = "Tg_BioIDvsAll.csv")
 
 ###  ""Tg_tdTom""vs all --------------------------------------
 comparisonTGT <- matrix(c(-1,1,-1,-1),nrow=1)
