@@ -1,4 +1,4 @@
-Package: ADProteomicsComparison 
+Package: ADProteomicsComparison
 Type: Package
 Title: ShinyApp to visualize AD Proteomics data
 Version: 0.0.1
