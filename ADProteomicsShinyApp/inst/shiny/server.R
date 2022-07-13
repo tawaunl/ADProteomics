@@ -4,6 +4,8 @@ library(readr)
 library(DT)
 library(clusterProfiler)
 library(multienrichjam)
+library(plotly)
+library(processx)
 function(input, output, session) {
   
   counts_data <- read.csv("countsForShiny.csv")
@@ -109,7 +111,7 @@ function(input, output, session) {
   })
   
   ## Plot Bar plot of Counts. --------
-  output$Bar_plot <- renderPlot({
+  output$Bar_plot <- renderPlotly({
     
     if (startsWith(input$Comparison,"Transgenic_B")) {
       group_order <- factor(levels=c("Transgenic_BioID2P2AtdTOM","Transgenic_tdTOM",
@@ -146,26 +148,31 @@ function(input, output, session) {
       arrange(Group)
     
     #Plot with  selected gene
-    plot <- plotData %>%
-      ggplot(aes(x=Group, y=Count, fill=Group)) +
-      scale_fill_manual(values=as.character(unique(counts_data$Color))) +
-      geom_boxplot(outlier.size=2) +
-      geom_jitter(color="black", size=2, position=position_jitter(0.2)) +
-      theme(
-        legend.position="none",
-        plot.title = element_text(size=14, face="bold"),
-        axis.text.y = element_text(size=12),
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1,size = 14),
-        axis.title=element_text(size=14,face="bold")
-      ) +
-      ggtitle(input$gene) +
-      xlab("") +
-      ylab("log(Protein Intensity)")
+    plot <- plot_ly(plotData,type = "box",y=plotData$Count,x=plotData$Group,
+                    boxpoints="all",jitter = 0.3,
+                    pointpos = 0,text = c(paste0(plotData$Sample,"\n Count =",plotData$Count)),
+                    hoverinfo = 'text',marker = list(plotData$Color),color=plotData$Color,
+                    showlegend=FALSE) 
+    
+      
     
     if (nrow(selected_data()) == 0) {
       plot <- NULL
     } else { return(plot) }
     
+    print(plot%>%
+            layout(title = input$gene,
+                   xaxis = list(autotypenumbers = 'strict', title = 'Group'),
+                   yaxis = list(title = 'log(Normalized Protein Intensity)'),
+                   plot_bgcolor='#ffff',
+                   xaxis = list(
+                     zerolinecolor = '#ffff',
+                     zerolinewidth = 2,
+                     gridcolor = 'ffff'),
+                   yaxis = list(
+                     zerolinecolor = '#ffff',
+                     zerolinewidth = 2,
+                     gridcolor = 'ffff')))
   })  
   
   ## Create Data tables ----------
@@ -204,12 +211,28 @@ function(input, output, session) {
   plot4way <- function(df, comparisonName,xlab, ylab){
     rsq <- round(cor(x=df$Log2FC,y=df$Log2FC.1 )^2,3)
     
-     plot <- ggplot(df,aes(x=Log2FC,y=Log2FC.1)) + geom_point() +
-      labs(title= paste(comparisonName,"comparison"),subtitle = paste("R2 = ",rsq),
-           x=paste("log2(FoldChange)",xlab), y = paste("log2(FoldChange)",ylab))+
-      theme_classic()+ geom_hline(yintercept=0, linetype="dashed", 
-                                  color = "red", size=0.5) + geom_vline(xintercept=0, linetype="dashed", 
-                                                                        color = "red", size=0.5) 
+    plot <- plot_ly(df,type = "scatter",mode='markers', y=df$Log2FC.1,x=df$Log2FC,
+                    text = c(paste0("Protein: ",df$Protein,
+                                    "\n x-FC = ",df$Log2FC,
+                                    "\n y-FC = ",df$Log2FC.1,
+                                    "\n Gene =",df$Gene,
+                                    "\n Description=",df$Description)),
+                    hoverinfo = 'text',marker = list(color="black"),
+                    showlegend=FALSE) 
+     
+     plot <- plot %>% layout(title= paste0(comparisonName,' comparison',
+                                   '<br>','<sup>','R2 = ',rsq),
+                     xaxis = list(autotypenumbers = 'strict', title = paste("log2(FoldChange)",xlab)),
+                     yaxis = list(title = paste("log2(FoldChange)",ylab)),
+                     plot_bgcolor='#ffff',
+                     xaxis = list(
+                       zerolinecolor = '#ffff',
+                       zerolinewidth = 2,
+                       gridcolor = 'ffff'),
+                     yaxis = list(
+                       zerolinecolor = '#ffff',
+                       zerolinewidth = 2,
+                       gridcolor = 'ffff'))
      return(plot)
       
   }
@@ -234,23 +257,63 @@ function(input, output, session) {
   fourWayinput <- reactive({
     df <- prepare4way(xDE(),yDE())
     comparisonName <- paste(input$x,"vs.",input$y)
-    plot4way(df,comparisonName,xlab=input$x,ylab=input$y)
+    fourWayinput <- plot4way(df,comparisonName,xlab=input$x,ylab=input$y)
     
   })
   
-  output$four_way <- renderPlot({
+  Quadrant <- reactive({
+    df <- prepare4way(xDE(),yDE())
+    
+  })
+  output$four_way <- renderPlotly({
+    
+    qdf <- data.frame(Quadrant())
+    q1 <- qdf[which(qdf$Log2FC<0 & qdf$Log2FC.1>0),]
+    q2 <- qdf[which(qdf$Log2FC>0 & qdf$Log2FC.1>0),]
+    q3 <- qdf[which(qdf$Log2FC<0 & qdf$Log2FC.1<0),]
+    q4 <- qdf[which(qdf$Log2FC>0 & qdf$Log2FC.1<0),]
+    
     if(input$quad=="Q1"){
-      print(fourWayinput()+gghighlight(Log2FC < 0 ,Log2FC.1 > 0 ))
+      plot <- fourWayinput() %>% add_trace(q1,name="Q1", mode='markers', y=q1$Log2FC.1,x=q1$Log2FC,
+                                         text = c(paste0("Protein: ",q1$Protein,
+                                                         "\n x-FC = ",q1$Log2FC,
+                                                         "\n y-FC = ",q1$Log2FC.1,
+                                                         "\n Gene =",q1$Gene,
+                                                         "\n Description=",q1$Description)),
+                                         hoverinfo = 'text',marker = list(color="red"),
+                                         showlegend=FALSE)  
     }
     if(input$quad=="Q2"){
-      print(fourWayinput() +gghighlight(Log2FC > 0 ,Log2FC.1 > 0 ))
+      plot <- fourWayinput() %>% add_trace(q2,name="Q2", mode='markers', y=q2$Log2FC.1,x=q2$Log2FC,
+                                        text = c(paste0("Protein: ",q2$Protein,
+                                                        "\n x-FC = ",q2$Log2FC,
+                                                        "\n y-FC = ",q2$Log2FC.1,
+                                                        "\n Gene =",q2$Gene,
+                                                        "\n Description=",q2$Description)),
+                                        hoverinfo = 'text',marker = list(color="red"),
+                                        showlegend=FALSE) 
     }
     if(input$quad=="Q3"){
-      print(fourWayinput()+gghighlight(Log2FC < 0 ,Log2FC.1 < 0 ))
+      plot <- fourWayinput() %>% add_trace(q3,name="Q3", mode='markers', y=q3$Log2FC.1,x=q3$Log2FC,
+                                        text = c(paste0("Protein: ",q3$Protein,
+                                                        "\n x-FC = ",q3$Log2FC,
+                                                        "\n y-FC = ",q3$Log2FC.1,
+                                                        "\n Gene =",q3$Gene,
+                                                        "\n Description=",q3$Description)),
+                                        hoverinfo = 'text',marker = list(color="red"),
+                                        showlegend=FALSE) 
     }
     if(input$quad=="Q4"){
-      print(fourWayinput()+gghighlight(Log2FC > 0 ,Log2FC.1 < 0 ))
+      plot <- fourWayinput() %>% add_trace(q4,name="Q4", mode='markers', y=q4$Log2FC.1,x=q4$Log2FC,
+                                        text = c(paste0("Protein: ",q4$Protein,
+                                                        "\n x-FC = ",q4$Log2FC,
+                                                        "\n y-FC = ",q4$Log2FC.1,
+                                                        "\n Gene =",q4$Gene,
+                                                        "\n Description=",q4$Description)),
+                                        hoverinfo = 'text',marker = list(color="red"),
+                                        showlegend=FALSE) 
     }
+    print(plot)
     
   })
   
@@ -285,15 +348,15 @@ function(input, output, session) {
     })
   
   ## Download 4 way plot -------------
-  output$download4way <- downloadHandler(
-    filename = function() {
-      comparisonName <- paste(input$x,"vs.",input$y)
-
-      paste(comparisonName, Sys.Date(),"4wayPlot.png", sep="")
-    },
-    content = function(file) {
-      ggsave(file,fourWayinput())
-    })
+  # output$download4way <- downloadHandler(
+  #   filename = function() {
+  #     comparisonName <- paste(input$x,"vs.",input$y)
+  # 
+  #     paste(comparisonName, Sys.Date(),"4wayPlot.png", sep="")
+  #   },
+  #   content = function(file) {
+  #     orca(fourWayinput(),file)
+  #   })
   ### Download 4 way quadrants ------------
   quad_options <- c("Q1","Q2","Q3","Q4")
   updateSelectizeInput(session, "quad", selected = "Q2",

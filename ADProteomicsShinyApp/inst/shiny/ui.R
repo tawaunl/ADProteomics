@@ -31,7 +31,7 @@ ui <- navbarPage("AD Proteomics Comparisons",
                                      # Gene selector
                                      selectizeInput("gene", "Enter a Protein name:", selected = "GFAP", choices = NULL), 
                                      br(),
-                                     plotOutput("Bar_plot",height = 700,width = 650),
+                                     plotlyOutput("Bar_plot",height = 700,width = 850),
                                      hr(),
                                      fluidRow(DT::dataTableOutput("DE_data")),
                                      br(),br(),br(),
@@ -75,7 +75,7 @@ ui <- navbarPage("AD Proteomics Comparisons",
                                                   selected = "TransgenicBioIDvsALL", choices = NULL))),
                           
                           #Downlaoad buttons
-                          downloadButton("download4way", "Download Plot"),
+                          # downloadButton("download4way", "Download Plot"),
                           fixedRow( 
                             column(3,
                                    selectizeInput("quad", "Select Quadrant",
@@ -86,7 +86,7 @@ ui <- navbarPage("AD Proteomics Comparisons",
                           br(),br(),br(),
                           #Plot
                           br(),
-                          plotOutput("four_way",height = 700,width = 650)
+                          plotlyOutput("four_way",height = 1000,width = 1000)
                           )
    
                
