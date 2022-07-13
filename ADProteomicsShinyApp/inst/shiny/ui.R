@@ -14,6 +14,8 @@ library(readr)
 library(DT)
 library(shinyjs)
 library(gghighlight)
+library(plotly)
+library(clusterProfiler)
 
 ui <- navbarPage("AD Proteomics Comparisons",
                  

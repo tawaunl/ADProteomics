@@ -3,9 +3,9 @@ library(ggplot2)
 library(readr)
 library(DT)
 library(clusterProfiler)
-library(multienrichjam)
 library(plotly)
 library(processx)
+
 function(input, output, session) {
   
   counts_data <- read.csv("countsForShiny.csv")
@@ -75,12 +75,14 @@ function(input, output, session) {
   output$pathwayplot <- renderPlot({
     selected_compare <- input$Comparison
     if(input$de_enriched==FALSE){
-      data <- read.csv(paste0(selected_compare,"_enrichedPathways.csv"))}
+      load(paste0(selected_compare,"_enrichedPathways.RData"))
+      data <- enrichedPathways
+      }
     
     if(input$de_enriched==TRUE){
-      data <- read.csv(paste0(selected_compare,"_de-enrichedPathways.csv"))}  
+      load(paste0(selected_compare,"_de-enrichedPathways.RData"))
+      data <- de_enrichedPathways}  
     
-    data<- enrichDF2enrichResult(data)
     barplot(data,  showCategory=20)
   })
   

@@ -10,7 +10,7 @@ compare_options <- c("Transgenic_BioIDvsALL","WT_BioIDvsALL","Transgenic_tdTOMvs
                      "WT_BioIDvsTransgenic_BioID","WT_BioIDvsWT_tdTOM")
 
 mm <- search_kegg_organism('musculus', by='scientific_name')
-wd <- "/gstore/scratch/u/lucast3/Alzheimers_Proteomics/AD_Proteomics/ShinyApp/"
+wd <- "/gstore/scratch/u/lucast3/Alzheimers_Proteomics/AD_Proteomics/ADProteomicsShinyApp/inst/shiny/"
 
 for (comparison in compare_options) {
   
@@ -18,7 +18,7 @@ for (comparison in compare_options) {
   data <- read.csv(file= paste0(wd, comparison,".csv"))
   
   ## Find instances of genes enriched and de- enriched
-  enriched  <- which(data$Log2FC > 1)
+  enriched  <- which(data$Log2FC > .5)
   deenriched <- which(data$Log2FC < 0)
   
   # subset genes to comput pathway analysis
@@ -44,6 +44,7 @@ for (comparison in compare_options) {
                                  organism     = 'mmu',
                                  pvalueCutoff = 0.05)
   write.csv(enrichedPathways, file=paste0(wd,comparison,"_enrichedPathways.csv"))
+  save(enrichedPathways,file=paste0(wd,comparison,"_enrichedPathways.RData"))
   }
   
   if(dim(de_enrichedGenes)[1] > 0){
@@ -52,10 +53,8 @@ for (comparison in compare_options) {
                                  pvalueCutoff    = 0.05)
   
   write.csv(de_enrichedPathways, file=paste0(wd,comparison,"_de-enrichedPathways.csv"))
+  save(de_enrichedPathways,file=paste0(wd,comparison,"_de-enrichedPathways.RData"))
   }
 
 }
 
-library(enrichplot)
-enrichedPathways <- read.csv(file=paste0(wd,comparison,"_enrichedPathways.csv"))
-barplot(de_enrichedPathways, showCategory=20) 
