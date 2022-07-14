@@ -115,28 +115,61 @@ function(input, output, session) {
   ## Plot Bar plot of Counts. --------
   output$Bar_plot <- renderPlotly({
     
-    if (startsWith(input$Comparison,"Transgenic_B")) {
+    
+    if(input$Comparison=="Transgenic_BioIDvsTransgenic_tdTOM"){
+      group_order <- factor(levels=c("Transgenic_BioID2P2AtdTOM","Transgenic_tdTOM",
+                                     "WT_BioID2P2AtdTOM","WT_tdTOM"))
+      if(input$interleaved==TRUE){
+        group_order <- factor(levels=c("Transgenic_tdTOM","Transgenic_BioID2P2AtdTOM",
+                                       "WT_BioID2P2AtdTOM","WT_tdTOM"))
+      }}
+    
+    if(input$Comparison=="Transgenic_BioIDvsWT_tdTOM"){
+      group_order <- factor(levels=c("Transgenic_BioID2P2AtdTOM","WT_tdTOM","Transgenic_tdTOM",
+                                     "WT_BioID2P2AtdTOM"))
+      if(input$interleaved==TRUE){
+        group_order <- factor(levels=c("WT_tdTOM","Transgenic_BioID2P2AtdTOM","Transgenic_tdTOM",
+                                       "WT_BioID2P2AtdTOM"))
+      }}
+    if(input$Comparison=="WT_BioIDvsTransgenic_BioID"){
+      group_order <- factor(levels=c("WT_BioID2P2AtdTOM","Transgenic_BioID2P2AtdTOM",
+                                     "WT_tdTOM","Transgenic_tdTOM"))
+      if(input$interleaved==TRUE){
+        group_order <- factor(levels=c("Transgenic_BioID2P2AtdTOM","WT_BioID2P2AtdTOM",
+                                       "WT_tdTOM","Transgenic_tdTOM"))
+      }}
+    if(input$Comparison=="WT_BioIDvsWT_tdTOM"){
+      group_order <- factor(levels=c("WT_BioID2P2AtdTOM","WT_tdTOM","Transgenic_BioID2P2AtdTOM",
+                                     "Transgenic_tdTOM"))
+      if(input$interleaved==TRUE){
+        group_order <- factor(levels=c("WT_tdTOM","WT_BioID2P2AtdTOM","Transgenic_BioID2P2AtdTOM",
+                                       "Transgenic_tdTOM"))
+      }}
+    
+    
+    
+    if (startsWith(input$Comparison,"Transgenic_BioIDvsALL")) {
       group_order <- factor(levels=c("Transgenic_BioID2P2AtdTOM","Transgenic_tdTOM",
                                      "WT_BioID2P2AtdTOM","WT_tdTOM"))
       if(input$interleaved==TRUE){
         group_order <- factor(levels=c("Transgenic_tdTOM",
                                        "WT_BioID2P2AtdTOM","WT_tdTOM","Transgenic_BioID2P2AtdTOM"))
       }}
-    if (startsWith(input$Comparison,"Transgenic_t")) {
+    if (startsWith(input$Comparison,"Transgenic_tdTOMvsALL")) {
       group_order <- factor(levels=c("Transgenic_tdTOM","Transgenic_BioID2P2AtdTOM",
                                      "WT_BioID2P2AtdTOM","WT_tdTOM"))
       if(input$interleaved==TRUE){
         group_order <- factor(levels=c("WT_BioID2P2AtdTOM","WT_tdTOM",
                                        "Transgenic_BioID2P2AtdTOM","Transgenic_tdTOM"))
       }}
-    if (startsWith(input$Comparison,"WT_B") ) {
+    if (startsWith(input$Comparison,"WT_BioIDvsALL") ) {
       group_order <- factor(levels=c("WT_BioID2P2AtdTOM","WT_tdTOM",
                                      "Transgenic_BioID2P2AtdTOM","Transgenic_tdTOM"))
       if(input$interleaved==TRUE){
         group_order <- factor(levels=c("WT_tdTOM","Transgenic_BioID2P2AtdTOM",
                                        "Transgenic_tdTOM","WT_BioID2P2AtdTOM"))
       }}
-    if (startsWith(input$Comparison,"WT_t") ) {
+    if (startsWith(input$Comparison,"WT_tdTOMvsALL") ) {
       group_order <- factor(levels=c("WT_tdTOM","WT_BioID2P2AtdTOM",
                                      "Transgenic_BioID2P2AtdTOM","Transgenic_tdTOM")) 
       if(input$interleaved==TRUE){
@@ -160,21 +193,24 @@ function(input, output, session) {
     
     if (nrow(selected_data()) == 0) {
       plot <- NULL
-    } else { return(plot) }
-    
-    print(plot%>%
-            layout(title = input$gene,
-                   xaxis = list(autotypenumbers = 'strict', title = 'Group'),
-                   yaxis = list(title = 'log(Normalized Protein Intensity)'),
-                   plot_bgcolor='#ffff',
-                   xaxis = list(
-                     zerolinecolor = '#ffff',
-                     zerolinewidth = 2,
-                     gridcolor = 'ffff'),
-                   yaxis = list(
-                     zerolinecolor = '#ffff',
-                     zerolinewidth = 2,
-                     gridcolor = 'ffff')))
+    } else {
+      
+      plot <- plot %>%
+        layout(title = input$gene,
+               xaxis = list(autotypenumbers = 'strict', title = 'Group'),
+               yaxis = list(title = 'log(Normalized Protein Intensity)'),
+               plot_bgcolor='#ffff',
+               xaxis = list(
+                 zerolinecolor = '#ffff',
+                 zerolinewidth = 2,
+                 gridcolor = 'ffff'),
+               yaxis = list(
+                 zerolinecolor = '#ffff',
+                 zerolinewidth = 2,
+                 gridcolor = 'ffff'))
+      return(plot)
+    }
+      
   })  
   
   ## Create Data tables ----------
@@ -193,7 +229,7 @@ function(input, output, session) {
   
   output$full_data <- DT::renderDataTable({
     DT::datatable(fullDE(), 
-                  options = list(lengthMenu = c(5, 30, 50), pageLength = 5),rownames = FALSE)
+                  options = list(lengthMenu = c(15, 30, 50), pageLength = 15),rownames = FALSE)
   })
   
   
@@ -222,11 +258,13 @@ function(input, output, session) {
                     hoverinfo = 'text',marker = list(color="black"),
                     showlegend=FALSE) 
      
-     plot <- plot %>% layout(title= paste0(comparisonName,' comparison',
+     plot <- plot %>% layout(title=paste0(comparisonName,' comparison',
                                    '<br>','<sup>','R2 = ',rsq),
                      xaxis = list(autotypenumbers = 'strict', title = paste("log2(FoldChange)",xlab)),
                      yaxis = list(title = paste("log2(FoldChange)",ylab)),
                      plot_bgcolor='#ffff',
+                     title = list(
+                       y = 0.95, x = 0),
                      xaxis = list(
                        zerolinecolor = '#ffff',
                        zerolinewidth = 2,
