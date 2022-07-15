@@ -1,7 +1,7 @@
 Package: ADProteomicsComparison
 Type: Package
 Title: ShinyApp to visualize AD Proteomics data
-Version: 0.0.1
+Version: 0.0.2
 Date: 2022-07-12
 Author: Tawaun Lucas <lucas.tawaun@gene.com>
 Maintainer: Tawaun Lucas <lucas.tawaun@gene.com>
