@@ -13,7 +13,7 @@ function(input, output, session) {
   gene_options <- counts_data$Protein[1:dim(counts)[1]]
   compare_options <- c("Transgenic_BioIDvsALL","WT_BioIDvsALL","Transgenic_tdTOMvsALL",
                        "WT_tdTOMvsALL","Transgenic_BioIDvsTransgenic_tdTOM","Transgenic_BioIDvsWT_tdTOM",
-                       "WT_BioIDvsTransgenic_BioID","WT_BioIDvsWT_tdTOM")
+                       "WT_BioIDvsTransgenic_BioID","WT_BioIDvsWT_tdTOM","Transgenic_tdTOMvsWT_tdTOM")
   
   # Update selected Comparison ---------
   updateSelectizeInput(session, "Comparison", selected = "Transgenic_BioIDvsALL",
@@ -104,6 +104,8 @@ function(input, output, session) {
       isolated_comp <- c("WT_BioID2P2AtdTOM","Transgenic_BioID2P2AtdTOM")}
     if(selected_compare == "WT_BioIDvsWT_tdTOM"){
       isolated_comp <- c("WT_BioID2P2AtdTOM","WT_tdTOM")}
+    if(selected_compare == "Transgenic_tdTOMvsWT_tdTOM"){
+      isolated_comp <- c("Transgenic_tdTOM","WT_tdTOM")}
     
     isolated_gene <- paste("^",selected_gene,"$", sep="") #Specifies the beginning and end of the string so only exact gene matches get plotted
     selected_data <- counts_data[grepl(isolated_gene, counts_data$Protein, ignore.case=TRUE),]
@@ -144,6 +146,13 @@ function(input, output, session) {
       if(input$interleaved==TRUE){
         group_order <- factor(levels=c("WT_tdTOM","WT_BioID2P2AtdTOM","Transgenic_BioID2P2AtdTOM",
                                        "Transgenic_tdTOM"))
+      }}
+    if(input$Comparison=="Transgenic_tdTOMvsWT_tdTOM"){
+      group_order <- factor(levels=c("Transgenic_tdTOM","WT_tdTOM",
+                                     "WT_BioID2P2AtdTOM","Transgenic_BioID2P2AtdTOM"))
+      if(input$interleaved==TRUE){
+        group_order <- factor(levels=c("WT_tdTOM","Transgenic_tdTOM",
+                                       "WT_BioID2P2AtdTOM","Transgenic_BioID2P2AtdTOM"))
       }}
     
     
